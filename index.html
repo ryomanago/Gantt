@@ -6,26 +6,26 @@
   <title>Project Planner Prototype</title>
   <style>
     :root {
-      --bg: #eef2f7;
+      --bg: #f4f8ff;
       --surface: #ffffff;
-      --surface-soft: #f7f9fc;
-      --surface-muted: #edf2f8;
-      --line: #d8e0ea;
-      --line-strong: #bfccd9;
-      --text: #111827;
-      --muted: #64748b;
-      --primary: #2251c7;
-      --primary-dark: #173b95;
-      --accent: #0f9f6e;
-      --warning: #d99010;
-      --danger: #db3b3b;
-      --purple: #6846c7;
+      --surface-soft: #eaf2fb;
+      --surface-muted: #d8e8f7;
+      --line: #c1d7ee;
+      --line-strong: #6fa2d4;
+      --text: #000000;
+      --muted: #334e7d;
+      --primary: #2166ad;
+      --primary-dark: #174b83;
+      --accent: #197a4b;
+      --warning: #fb5b01;
+      --danger: #ce0000;
+      --purple: #3460fb;
       --row-h: 44px;
       --day-w: 36px;
-      --left-w: 560px;
-      --radius: 8px;
-      --shadow: 0 18px 48px rgba(24, 39, 75, 0.11);
-      --focus: 0 0 0 3px rgba(34, 81, 199, 0.16);
+      --left-w: 460px;
+      --radius: 4px;
+      --shadow: none;
+      --focus: 0 0 0 3px rgba(33, 102, 173, 0.18);
     }
 
     * {
@@ -35,13 +35,12 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background:
-        linear-gradient(180deg, #f8fafc 0, var(--bg) 210px),
-        var(--bg);
+      background: var(--bg);
       color: var(--text);
       font-family: "Segoe UI", "Meiryo", "Hiragino Kaku Gothic ProN", sans-serif;
       font-size: 13px;
       letter-spacing: 0;
+      overflow: hidden;
     }
 
     button,
@@ -55,9 +54,36 @@
     }
 
     .app {
-      min-height: 100vh;
+      height: 100vh;
       display: grid;
       grid-template-rows: auto auto 1fr;
+      overflow: hidden;
+    }
+
+    body.gantt-fullscreen .app {
+      grid-template-rows: auto 1fr;
+    }
+
+    body.gantt-fullscreen .filters,
+    body.gantt-fullscreen .summary {
+      display: none;
+    }
+
+    body.gantt-fullscreen .workspace {
+      grid-template-columns: 1fr;
+    }
+
+    body.gantt-fullscreen .tabs {
+      display: none;
+    }
+
+    body.gantt-fullscreen .view {
+      margin: 12px;
+      border-radius: 4px;
+    }
+
+    body.gantt-fullscreen .gantt {
+      grid-template-columns: minmax(360px, 420px) minmax(640px, 1fr);
     }
 
     .topbar {
@@ -148,7 +174,7 @@
 
     .filters {
       display: grid;
-      grid-template-columns: minmax(180px, 1.3fr) repeat(4, minmax(130px, 0.7fr));
+      grid-template-columns: minmax(160px, 220px);
       gap: 10px;
       padding: 12px 22px;
       background: var(--surface);
@@ -300,9 +326,33 @@
     .gantt {
       height: 100%;
       display: grid;
-      grid-template-columns: minmax(390px, var(--left-w)) 1fr;
+      grid-template-columns: minmax(360px, var(--left-w)) minmax(520px, 1fr);
       min-width: 0;
       min-height: 0;
+      position: relative;
+    }
+
+    .gantt-fullscreen-toggle {
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      z-index: 12;
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #c1d7ee;
+      border-radius: 50%;
+      background: #fff;
+      color: var(--primary);
+      box-shadow: 0 6px 18px rgba(33, 102, 173, 0.18);
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .gantt-fullscreen-toggle:hover {
+      background: #eaf2fb;
     }
 
     .task-table,
@@ -313,6 +363,36 @@
 
     .task-table {
       border-right: 1px solid var(--line);
+      overflow: auto;
+      scrollbar-gutter: stable;
+      position: relative;
+    }
+
+    .task-table.is-y-synced {
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    #taskRows {
+      will-change: transform;
+    }
+
+    .task-add-panel {
+      position: sticky;
+      left: 0;
+      bottom: 0;
+      z-index: 9;
+      display: flex;
+      gap: 8px;
+      min-width: 360px;
+      padding: 10px;
+      border-top: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+    }
+
+    .task-add-panel .btn {
+      flex: 1;
     }
 
     .table-head,
@@ -320,7 +400,7 @@
       display: grid;
       grid-template-columns: 1.7fr 90px 86px 86px 72px 46px;
       align-items: center;
-      min-width: 540px;
+      min-width: 700px;
     }
 
     .table-head {
@@ -336,6 +416,26 @@
       font-weight: 800;
     }
 
+    .head-filter {
+      display: grid;
+      gap: 4px;
+      align-content: center;
+      min-width: 0;
+    }
+
+    .head-filter select {
+      width: 100%;
+      height: 24px;
+      min-width: 0;
+      padding: 0 6px;
+      border: 1px solid #c1d7ee;
+      border-radius: 4px;
+      background: #fff;
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 500;
+    }
+
     .task-row {
       height: var(--row-h);
       padding: 0 10px;
@@ -346,6 +446,18 @@
     .task-row:hover,
     .task-row.selected {
       background: #eff6ff;
+    }
+
+    .task-row.dragging {
+      opacity: 0.48;
+    }
+
+    .task-row.drop-before {
+      box-shadow: inset 0 3px 0 var(--primary);
+    }
+
+    .task-row.drop-after {
+      box-shadow: inset 0 -3px 0 var(--primary);
     }
 
     .name-cell {
@@ -380,9 +492,20 @@
     }
 
     .type-dot.milestone {
-      border-radius: 2px;
-      transform: rotate(45deg);
-      background: var(--danger);
+      width: 14px;
+      height: 14px;
+      border-radius: 0;
+      background: transparent;
+      color: var(--danger);
+      transform: none;
+      display: inline-grid;
+      place-items: center;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .type-dot.milestone::before {
+      content: "★";
     }
 
     .type-dot.group {
@@ -434,6 +557,55 @@
       border-bottom: 1px solid var(--line);
     }
 
+    .timeline-toolbar {
+      position: sticky;
+      top: 0;
+      right: 0;
+      z-index: 9;
+      float: right;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      height: 32px;
+      margin: 6px 8px -38px 0;
+      padding: 3px;
+      border: 1px solid #c1d7ee;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+    }
+
+    .timeline-toolbar button,
+    .timeline-toolbar select {
+      height: 24px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+    }
+
+    .timeline-toolbar button {
+      width: 28px;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .timeline-toolbar button:hover,
+    .timeline-toolbar select:hover {
+      background: #eaf2fb;
+    }
+
+    .timeline-toolbar .range-label {
+      min-width: 72px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
     .month-row,
     .day-row {
       display: flex;
@@ -477,6 +649,14 @@
       border-bottom: 1px solid #edf1f6;
     }
 
+    .timeline-row.drop-before {
+      box-shadow: inset 0 3px 0 var(--primary);
+    }
+
+    .timeline-row.drop-after {
+      box-shadow: inset 0 -3px 0 var(--primary);
+    }
+
     .grid-col {
       position: absolute;
       top: 0;
@@ -489,6 +669,7 @@
     .task-bar {
       position: absolute;
       top: 13px;
+      z-index: 4;
       height: 18px;
       min-width: 10px;
       border-radius: 5px;
@@ -509,13 +690,23 @@
     }
 
     .task-bar.milestone {
-      width: 14px;
-      min-width: 14px;
-      height: 14px;
-      top: 15px;
-      border-radius: 3px;
-      background: var(--danger);
-      transform: rotate(45deg);
+      width: 18px;
+      min-width: 18px;
+      height: 18px;
+      top: 12px;
+      border-radius: 0;
+      background: transparent;
+      color: var(--danger);
+      transform: none;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      line-height: 1;
+      box-shadow: none;
+    }
+
+    .task-bar.milestone::before {
+      content: "★";
     }
 
     .progress {
@@ -548,7 +739,7 @@
     }
 
     .task-bar.milestone .bar-label {
-      transform: rotate(-45deg) translate(9px, -17px);
+      transform: translateY(-50%);
     }
 
     .resize {
@@ -565,6 +756,105 @@
 
     .resize.right {
       right: -2px;
+    }
+
+    .dependency-handle {
+      position: absolute;
+      right: -9px;
+      top: 50%;
+      z-index: 8;
+      width: 10px;
+      height: 10px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      background: var(--primary);
+      transform: translateY(-50%);
+      cursor: crosshair;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.14s ease;
+    }
+
+    .task-bar:hover .dependency-handle,
+    .dependency-handle:hover,
+    body.linking-dependency .dependency-handle {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .dependency-handle.left {
+      left: -9px;
+      right: auto;
+    }
+
+    .task-bar.milestone .dependency-handle {
+      right: -12px;
+    }
+
+    .task-bar.milestone .dependency-handle.left {
+      left: -12px;
+    }
+
+    .dependency-preview {
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 1.5;
+      stroke-dasharray: 4 4;
+      pointer-events: none;
+    }
+
+    .timeline-row.dependency-target {
+      background: rgba(33, 102, 173, 0.08);
+    }
+
+    .dependency-layer {
+      position: absolute;
+      inset: 0 auto auto 0;
+      z-index: 2;
+      overflow: visible;
+      pointer-events: auto;
+    }
+
+    .dependency-line {
+      fill: none;
+      stroke: #6fa2d4;
+      stroke-width: 1.25;
+      opacity: 0.58;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .dependency-line-shadow {
+      fill: none;
+      stroke: #ffffff;
+      stroke-width: 4;
+      opacity: 0.86;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      pointer-events: none;
+    }
+
+    .dependency-hit {
+      fill: none;
+      stroke: transparent;
+      stroke-width: 12;
+      cursor: pointer;
+      pointer-events: stroke;
+    }
+
+    .dependency-line.is-warning {
+      stroke: #fb5b01;
+      stroke-dasharray: 4 4;
+      opacity: 0.5;
+    }
+
+    .dependency-label {
+      max-width: 90px;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
     }
 
     .board {
@@ -731,6 +1021,11 @@
 
     .form-grid .wide {
       grid-column: 1 / -1;
+    }
+
+    .form-grid select[multiple] {
+      min-height: 116px;
+      padding: 6px 8px;
     }
 
     textarea {
@@ -994,6 +1289,275 @@
       box-shadow: -22px 0 54px rgba(15, 23, 42, 0.2);
     }
 
+    .topbar {
+      background: #fff;
+      border-bottom-color: #c1d7ee;
+      box-shadow: none;
+      backdrop-filter: none;
+    }
+
+    .brand-mark {
+      background: var(--primary);
+      border-radius: 4px;
+      box-shadow: none;
+    }
+
+    .brand h1 {
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    .brand span {
+      color: var(--muted);
+    }
+
+    .btn,
+    .btn.primary {
+      min-height: 36px;
+      border-radius: 4px;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .btn:hover {
+      background: #f1f1f4;
+      transform: none;
+    }
+
+    .btn.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .btn.primary:hover {
+      background: var(--primary-dark);
+      border-color: var(--primary-dark);
+    }
+
+    .filters {
+      padding: 14px 24px 16px;
+      background: #fff;
+      border-bottom-color: #c1d7ee;
+    }
+
+    .field label,
+    .table-head,
+    .list-table th {
+      color: #4d4d4d;
+      font-weight: 800;
+    }
+
+    .field input,
+    .field select,
+    textarea,
+    .mini-select {
+      border-radius: 4px;
+      border-color: #c1d7ee;
+      background: #fff;
+    }
+
+    .workspace {
+      background: linear-gradient(90deg, #eaf2fb 0, #eaf2fb 280px, var(--bg) 280px);
+    }
+
+    .summary {
+      padding: 20px 18px;
+      background: #eaf2fb;
+      border-right-color: #c1d7ee;
+    }
+
+    .metric-grid {
+      gap: 8px;
+    }
+
+    .metric,
+    .health-row,
+    .task-card,
+    .lane {
+      border-color: #c1d7ee;
+      border-radius: 4px;
+      box-shadow: none;
+    }
+
+    .primary-metric {
+      grid-column: 1 / -1;
+      min-height: 112px;
+      display: grid;
+      align-content: center;
+      background: #fff;
+      border-top: 5px solid var(--primary);
+    }
+
+    .primary-metric strong {
+      font-size: 42px;
+      letter-spacing: 0;
+    }
+
+    .metric:not(.primary-metric) strong {
+      font-size: 24px;
+    }
+
+    .section-title {
+      margin: 20px 0 8px;
+      color: #333333;
+    }
+
+    .health-row {
+      grid-template-columns: 82px 1fr 34px;
+      background: #fff;
+    }
+
+    .bar-track {
+      height: 7px;
+      background: #d8e8f7;
+    }
+
+    .tabs {
+      padding: 16px 18px 0;
+      background: var(--bg);
+    }
+
+    .tab {
+      border-radius: 4px 4px 0 0;
+      background: #d8e8f7;
+      border-color: #c1d7ee;
+    }
+
+    .tab.active {
+      color: var(--primary);
+      background: #fff;
+      box-shadow: none;
+    }
+
+    .view {
+      border-color: #c1d7ee;
+      border-radius: 0 4px 4px 4px;
+      box-shadow: none;
+    }
+
+    .table-head,
+    .timeline-head,
+    .list-table th,
+    .month-cell {
+      background: var(--surface-soft);
+    }
+
+    .task-row,
+    .timeline-row,
+    .list-table th,
+    .list-table td {
+      border-bottom-color: #d8e8f7;
+    }
+
+    .grid-col {
+      border-right-color: #d8e8f7;
+    }
+
+    .table-head,
+    .task-row {
+      grid-template-columns: minmax(210px, 1.45fr) 88px 100px 72px 120px 44px;
+      min-width: 650px;
+    }
+
+    .task-row:hover,
+    .task-row.selected {
+      background: #eaf2fb;
+    }
+
+    .type-dot,
+    .type-dot.group,
+    .type-dot.milestone {
+      box-shadow: none;
+    }
+
+    .timeline,
+    .day-cell {
+      background: #fff;
+    }
+
+    .day-cell.today,
+    .grid-col.today {
+      background: #fff0e6;
+      color: #ac3e00;
+    }
+
+    .task-bar {
+      border-radius: 3px;
+      background: #cccccc;
+      box-shadow: none;
+    }
+
+    .progress,
+    .task-bar.done .progress,
+    .task-bar.blocked .progress {
+      background: var(--primary);
+    }
+
+    .task-bar.done .progress {
+      background: var(--accent);
+    }
+
+    .task-bar.blocked .progress {
+      background: var(--danger);
+    }
+
+    .task-bar.group {
+      background: var(--primary-dark);
+    }
+
+    .task-bar.milestone {
+      background: transparent;
+    }
+
+    .board {
+      background: #f4f8ff;
+    }
+
+    .lane {
+      background: #fff;
+    }
+
+    .lane h2 {
+      background: var(--surface-soft);
+    }
+
+    .task-card:hover {
+      border-color: var(--primary);
+      box-shadow: none;
+      transform: none;
+    }
+
+    .pill {
+      border-radius: 4px;
+      background: #d8e8f7;
+      color: #174b83;
+    }
+
+    .pill.high {
+      background: #fdeeee;
+      color: #620000;
+    }
+
+    .pill.medium {
+      background: #ffeee2;
+      color: #541e00;
+    }
+
+    .pill.low {
+      background: #e6f5ec;
+      color: #032213;
+    }
+
+    .drawer {
+      background: rgba(0, 0, 0, 0.34);
+      backdrop-filter: none;
+    }
+
+    .drawer-panel {
+      border-left: 1px solid #cccccc;
+      box-shadow: none;
+    }
+
     @media (max-width: 1120px) {
       .workspace {
         grid-template-columns: 1fr;
@@ -1037,7 +1601,7 @@
       }
 
       .gantt {
-        grid-template-columns: 480px 1fr;
+        grid-template-columns: 390px minmax(520px, 1fr);
       }
 
       .board {
@@ -1057,26 +1621,12 @@
         </div>
       </div>
       <div class="actions">
-        <button class="btn primary" id="addTaskBtn">＋ タスク</button>
-        <button class="btn" id="addMilestoneBtn">◇ マイルストーン</button>
         <button class="btn" id="exportBtn">CSV出力</button>
         <button class="btn" id="resetBtn">初期データ</button>
       </div>
     </header>
 
-    <section class="filters" aria-label="表示条件">
-      <div class="field">
-        <label for="searchInput">検索</label>
-        <input id="searchInput" type="search" placeholder="タスク名、担当者、メモ">
-      </div>
-      <div class="field">
-        <label for="statusFilter">ステータス</label>
-        <select id="statusFilter"></select>
-      </div>
-      <div class="field">
-        <label for="ownerFilter">担当者</label>
-        <select id="ownerFilter"></select>
-      </div>
+    <section class="filters" aria-label="表示条件" style="display:none">
       <div class="field">
         <label for="scaleSelect">表示単位</label>
         <select id="scaleSelect">
@@ -1084,19 +1634,15 @@
           <option value="week">週</option>
         </select>
       </div>
-      <div class="field">
-        <label for="startInput">表示開始日</label>
-        <input id="startInput" type="date">
-      </div>
     </section>
 
     <div class="workspace">
       <aside class="summary">
         <div class="metric-grid">
+          <div class="metric primary-metric"><strong id="avgProgress">0%</strong><span>平均進捗</span></div>
           <div class="metric"><strong id="totalCount">0</strong><span>全タスク</span></div>
           <div class="metric"><strong id="doneCount">0</strong><span>完了</span></div>
           <div class="metric"><strong id="lateCount">0</strong><span>期限超過</span></div>
-          <div class="metric"><strong id="avgProgress">0%</strong><span>平均進捗</span></div>
         </div>
         <div class="section-title">ステータス</div>
         <div class="health" id="statusHealth"></div>
@@ -1137,6 +1683,10 @@
         <div class="field">
           <label for="formParent">親タスク</label>
           <select id="formParent"></select>
+        </div>
+        <div class="field wide">
+          <label for="formDependencies">依存先</label>
+          <select id="formDependencies" multiple></select>
         </div>
         <div class="field">
           <label for="formStatus">ステータス</label>
@@ -1207,6 +1757,7 @@
         start: "2026-05-10",
         end: "2026-06-03",
         progress: 46,
+        dependencies: [],
         parent: "",
         type: "group",
         expanded: true,
@@ -1221,6 +1772,7 @@
         start: "2026-05-10",
         end: "2026-05-14",
         progress: 100,
+        dependencies: [],
         parent: "p1",
         type: "task",
         expanded: true,
@@ -1235,6 +1787,7 @@
         start: "2026-05-15",
         end: "2026-05-15",
         progress: 100,
+        dependencies: ["t1"],
         parent: "p1",
         type: "milestone",
         expanded: true,
@@ -1249,6 +1802,7 @@
         start: "2026-05-16",
         end: "2026-05-24",
         progress: 55,
+        dependencies: ["m1"],
         parent: "p1",
         type: "task",
         expanded: true,
@@ -1263,6 +1817,7 @@
         start: "2026-05-18",
         end: "2026-05-27",
         progress: 70,
+        dependencies: ["t1"],
         parent: "p1",
         type: "task",
         expanded: true,
@@ -1277,6 +1832,7 @@
         start: "2026-05-28",
         end: "2026-06-03",
         progress: 0,
+        dependencies: ["t2", "t3"],
         parent: "p1",
         type: "task",
         expanded: true,
@@ -1288,14 +1844,13 @@
     let activeView = "gantt";
     let selectedTaskId = "";
     let editingTaskId = "";
+    let ganttFullscreen = false;
+    const tableFilters = { owner: "", status: "", type: "", priority: "" };
+    let viewStartDate = "";
 
     const els = {
       viewRoot: document.getElementById("viewRoot"),
-      searchInput: document.getElementById("searchInput"),
-      statusFilter: document.getElementById("statusFilter"),
-      ownerFilter: document.getElementById("ownerFilter"),
       scaleSelect: document.getElementById("scaleSelect"),
-      startInput: document.getElementById("startInput"),
       drawer: document.getElementById("drawer"),
       taskForm: document.getElementById("taskForm")
     };
@@ -1303,7 +1858,17 @@
     function loadTasks() {
       try {
         const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        return Array.isArray(stored) && stored.length ? stored : structuredClone(seedTasks);
+        if (Array.isArray(stored) && stored.length) {
+          const seedById = new Map(seedTasks.map(task => [task.id, task]));
+          return stored.map(task => {
+            const seed = seedById.get(task.id);
+            return {
+              ...task,
+              dependencies: Array.isArray(task.dependencies) ? task.dependencies : structuredClone(seed?.dependencies || [])
+            };
+          });
+        }
+        return structuredClone(seedTasks);
       } catch {
         return structuredClone(seedTasks);
       }
@@ -1339,11 +1904,16 @@
     }
 
     function normalizeTask(task) {
+      if (!Array.isArray(task.dependencies)) task.dependencies = task.dependency ? [task.dependency] : [];
+      task.dependencies = task.dependencies.filter(id => id && id !== task.id && tasks.some(item => item.id === id));
       if (task.type === "milestone") task.end = task.start;
       if (parseDate(task.end) < parseDate(task.start)) task.end = task.start;
       task.progress = clamp(task.progress, 0, 100);
-      if (task.status === "done") task.progress = 100;
-      if (task.progress === 100 && task.status !== "blocked") task.status = "done";
+      if (task.status !== "blocked") {
+        if (task.progress >= 100) task.status = "done";
+        else if (task.progress >= 1) task.status = "doing";
+        else task.status = "todo";
+      }
     }
 
     function childrenOf(parentId) {
@@ -1355,17 +1925,15 @@
     }
 
     function visibleTasks() {
-      const query = els.searchInput.value.trim().toLowerCase();
-      const status = els.statusFilter.value;
-      const owner = els.ownerFilter.value;
+      const { status, owner, type, priority } = tableFilters;
       const matchedIds = new Set();
 
       tasks.forEach(task => {
-        const haystack = `${task.name} ${task.owner} ${task.notes}`.toLowerCase();
-        const matchesQuery = !query || haystack.includes(query);
         const matchesStatus = !status || task.status === status;
         const matchesOwner = !owner || task.owner === owner;
-        if (matchesQuery && matchesStatus && matchesOwner) {
+        const matchesType = !type || task.type === type;
+        const matchesPriority = !priority || task.priority === priority;
+        if (matchesStatus && matchesOwner && matchesType && matchesPriority) {
           matchedIds.add(task.id);
           let parent = tasks.find(item => item.id === task.parent);
           while (parent) {
@@ -1379,7 +1947,7 @@
       function walk(parentId, level) {
         childrenOf(parentId).forEach(task => {
           if (matchedIds.has(task.id)) rows.push({ task, level });
-          if (task.expanded !== false || query || status || owner) walk(task.id, level + 1);
+          if (task.expanded !== false || status || owner || type || priority) walk(task.id, level + 1);
         });
       }
       walk("", 0);
@@ -1411,17 +1979,8 @@
     }
 
     function updateSelectOptions() {
-      const selectedStatus = els.statusFilter.value;
-      const selectedOwner = els.ownerFilter.value;
-
-      els.statusFilter.innerHTML = `<option value="">すべて</option>` + Object.entries(statusMeta)
-        .map(([value, meta]) => `<option value="${value}">${meta.label}</option>`).join("");
-      els.statusFilter.value = selectedStatus;
-
       const owners = [...new Set(tasks.map(task => task.owner).filter(Boolean))].sort();
-      els.ownerFilter.innerHTML = `<option value="">すべて</option>` + owners
-        .map(owner => `<option value="${escapeHtml(owner)}">${escapeHtml(owner)}</option>`).join("");
-      els.ownerFilter.value = owners.includes(selectedOwner) ? selectedOwner : "";
+      if (!owners.includes(tableFilters.owner)) tableFilters.owner = "";
 
       document.getElementById("ownerOptions").innerHTML = owners
         .map(owner => `<option value="${escapeHtml(owner)}"></option>`).join("");
@@ -1446,6 +2005,7 @@
       saveTasks();
       updateSelectOptions();
       renderSummary();
+      document.body.classList.toggle("gantt-fullscreen", ganttFullscreen);
 
       document.querySelectorAll(".tab").forEach(tab => {
         tab.classList.toggle("active", tab.dataset.view === activeView);
@@ -1488,7 +2048,7 @@
           <div title="${escapeHtml(task.name)}">${escapeHtml(task.name)}</div>
           <strong>${task.progress}%</strong>
         </div>
-      `).join("") : `<div class="empty">未完了タスクはありません</div>`;
+      `).join("") : `<div class="empty">譛ｪ螳御ｺ・ち繧ｹ繧ｯ縺ｯ縺ゅｊ縺ｾ縺帙ｓ</div>`;
     }
 
     function compactDate(value) {
@@ -1503,7 +2063,7 @@
       const unitDays = scale === "week" ? 7 : 1;
       const dayW = scale === "week" ? 58 : 36;
       document.documentElement.style.setProperty("--day-w", `${dayW}px`);
-      const rangeStart = parseDate(els.startInput.value || earliestStart());
+      const rangeStart = parseDate(viewStartDate || earliestStart());
       const columnCount = scale === "week" ? 18 : 54;
       const timelineWidth = columnCount * dayW;
 
@@ -1511,49 +2071,128 @@
         <div class="gantt">
           <div class="task-table">
             <div class="table-head">
-              <div>タスク名</div><div>状態</div><div>開始</div><div>終了</div><div>進捗</div><div></div>
+              <div class="head-filter"><span>タスク名</span><select data-table-filter="type">${typeFilterOptions()}</select></div>
+              <div class="head-filter"><span>担当者</span><select data-table-filter="owner">${ownerFilterOptions()}</select></div>
+              <div class="head-filter"><span>状態</span><select data-table-filter="status">${statusFilterOptions()}</select></div>
+              <div>進捗</div>
+              <div class="head-filter"><span>優先度</span><select data-table-filter="priority">${priorityFilterOptions()}</select></div>
+              <div></div>
             </div>
             <div id="taskRows"></div>
+            <div class="task-add-panel">
+              <button class="btn primary" id="addTaskBtn">＋ タスク</button>
+              <button class="btn" id="addMilestoneBtn">★ マイルストーン</button>
+            </div>
           </div>
           <div class="timeline">
+            <div class="timeline-toolbar" id="timelineToolbar" title="ホイールで表示期間を移動">
+              <button type="button" data-shift-range="-1" aria-label="前へ">‹</button>
+              <span class="range-label">${compactDate(formatDate(rangeStart))}</span>
+              <button type="button" data-shift-range="1" aria-label="次へ">›</button>
+              <select id="timelineScaleSelect" aria-label="表示単位">
+                <option value="day" ${scale === "day" ? "selected" : ""}>日</option>
+                <option value="week" ${scale === "week" ? "selected" : ""}>週</option>
+              </select>
+            </div>
             <div class="timeline-head" id="timelineHead"></div>
             <div class="timeline-body" id="timelineBody" style="width:${timelineWidth}px"></div>
           </div>
+          <button class="gantt-fullscreen-toggle" id="ganttFullscreenToggle" title="${ganttFullscreen ? "通常表示" : "全画面表示"}" aria-label="${ganttFullscreen ? "通常表示" : "全画面表示"}">${ganttFullscreen ? "↙" : "⛶"}</button>
         </div>
       `;
 
       document.getElementById("taskRows").innerHTML = rows.map(({ task, level }) => taskRowHtml(task, level)).join("")
-        || `<div class="empty">条件に合うタスクがありません</div>`;
+        || `<div class="empty">譚｡莉ｶ縺ｫ蜷医≧繧ｿ繧ｹ繧ｯ縺後≠繧翫∪縺帙ｓ</div>`;
 
       const { monthRow, dayRow } = timelineHeader(rangeStart, columnCount, unitDays, dayW);
       document.getElementById("timelineHead").innerHTML = monthRow + dayRow;
 
       const timelineBody = document.getElementById("timelineBody");
       timelineBody.style.height = `${Math.max(rows.length, 1) * 44}px`;
-      timelineBody.innerHTML = rows.map(({ task }, index) => timelineRowHtml(task, index, rangeStart, unitDays, dayW, columnCount)).join("");
+      timelineBody.innerHTML = dependencySvg(rows, rangeStart, unitDays, dayW, columnCount)
+        + rows.map(({ task }, index) => timelineRowHtml(task, index, rangeStart, unitDays, dayW, columnCount)).join("");
       bindGanttEvents(rangeStart, unitDays);
+      bindGanttScrollSync();
     }
 
     function taskRowHtml(task, level) {
       const canExpand = childrenOf(task.id).length > 0;
       const indent = level * 18;
-      return `<div class="task-row ${selectedTaskId === task.id ? "selected" : ""}" data-open="${task.id}">
+      return `<div class="task-row ${selectedTaskId === task.id ? "selected" : ""}" data-open="${task.id}" data-reorder="${task.id}" draggable="true">
         <div class="name-cell" style="padding-left:${indent}px">
           <button class="tree-toggle" data-toggle="${task.id}" title="開閉">${canExpand ? (task.expanded === false ? "›" : "⌄") : ""}</button>
           <span class="type-dot ${task.type}"></span>
           <input class="cell-input" value="${escapeHtml(task.name)}" data-field="name" data-id="${task.id}" aria-label="タスク名">
         </div>
+        <div><input class="cell-input" value="${escapeHtml(task.owner || "")}" data-field="owner" data-id="${task.id}" aria-label="担当者"></div>
         <div><select class="mini-select" data-field="status" data-id="${task.id}">${statusOptions(task.status)}</select></div>
-        <div class="date-text">${compactDate(task.start)}</div>
-        <div class="date-text">${compactDate(task.end)}</div>
         <div><input class="cell-input" type="number" min="0" max="100" value="${task.progress}" data-field="progress" data-id="${task.id}" aria-label="進捗"></div>
+        <div class="dependency-label" title="${escapeHtml(dependencyNames(task))}">${escapeHtml(dependencyNames(task) || "-")}</div>
         <div><button class="btn icon" data-child="${task.id}" title="子タスク追加">＋</button></div>
       </div>`;
+    }
+
+    function dependencyNames(task) {
+      return (task.dependencies || [])
+        .map(id => tasks.find(item => item.id === id)?.name)
+        .filter(Boolean)
+        .join(", ");
+    }
+
+    function removeDependency(fromId, toId) {
+      const target = tasks.find(task => task.id === toId);
+      if (!target) return false;
+      const before = (target.dependencies || []).length;
+      target.dependencies = (target.dependencies || []).filter(id => id !== fromId);
+      if (target.dependencies.length === before) return false;
+      saveTasks();
+      return true;
+    }
+
+    function moveTaskBeforeOrAfter(sourceId, targetId, place) {
+      if (!sourceId || !targetId || sourceId === targetId) return false;
+      const source = tasks.find(task => task.id === sourceId);
+      const target = tasks.find(task => task.id === targetId);
+      if (!source || !target || source.parent !== target.parent) return false;
+
+      const next = tasks.filter(task => task.id !== sourceId);
+      const targetIndex = next.findIndex(task => task.id === targetId);
+      if (targetIndex < 0) return false;
+      next.splice(place === "after" ? targetIndex + 1 : targetIndex, 0, source);
+      tasks = next;
+      saveTasks();
+      return true;
     }
 
     function statusOptions(current) {
       return Object.entries(statusMeta)
         .map(([value, meta]) => `<option value="${value}" ${current === value ? "selected" : ""}>${meta.label}</option>`)
+        .join("");
+    }
+
+    function statusFilterOptions() {
+      return `<option value="">すべて</option>` + Object.entries(statusMeta)
+        .map(([value, meta]) => `<option value="${value}" ${tableFilters.status === value ? "selected" : ""}>${meta.label}</option>`)
+        .join("");
+    }
+
+    function ownerFilterOptions() {
+      const owners = [...new Set(tasks.map(task => task.owner).filter(Boolean))].sort();
+      return `<option value="">すべて</option>` + owners
+        .map(owner => `<option value="${escapeHtml(owner)}" ${tableFilters.owner === owner ? "selected" : ""}>${escapeHtml(owner)}</option>`)
+        .join("");
+    }
+
+    function typeFilterOptions() {
+      const labels = { task: "タスク", milestone: "マイルストーン", group: "グループ" };
+      return `<option value="">すべて</option>` + Object.entries(labels)
+        .map(([value, label]) => `<option value="${value}" ${tableFilters.type === value ? "selected" : ""}>${label}</option>`)
+        .join("");
+    }
+
+    function priorityFilterOptions() {
+      return `<option value="">すべて</option>` + Object.entries(priorityMeta)
+        .map(([value, label]) => `<option value="${value}" ${tableFilters.priority === value ? "selected" : ""}>${label}</option>`)
         .join("");
     }
 
@@ -1584,6 +2223,46 @@
       };
     }
 
+    function dependencySvg(rows, rangeStart, unitDays, dayW, count) {
+      const rowMap = new Map(rows.map(({ task }, index) => [task.id, { task, index }]));
+      const width = count * dayW;
+      const height = Math.max(rows.length, 1) * 44;
+      const paths = [];
+
+      rows.forEach(({ task }, index) => {
+        (task.dependencies || []).forEach(depId => {
+          const dep = rowMap.get(depId);
+          if (!dep || dep.task.type === "group" || task.type === "group") return;
+
+          const depStartX = daysBetween(formatDate(rangeStart), dep.task.start) / unitDays * dayW;
+          const depEndX = (daysBetween(formatDate(rangeStart), dep.task.end) + 1) / unitDays * dayW;
+          const fromX = dep.task.type === "milestone" ? depStartX + 9 : depEndX;
+          const toX = daysBetween(formatDate(rangeStart), task.start) / unitDays * dayW;
+          const fromY = dep.index * 44 + (dep.task.type === "milestone" && toX <= fromX + 18 ? 28 : 22);
+          const toY = index * 44 + 22;
+          const lane = paths.length % 5;
+          const laneX = (lane - 2) * 7;
+          const laneY = lane * 5;
+          const midX = Math.max(fromX + 14, Math.min(toX - 10, (fromX + toX) / 2)) + laneX;
+          const isWarning = parseDate(dep.task.end) >= parseDate(task.start);
+          const path = toX > fromX + 18
+            ? `M ${fromX} ${fromY} H ${midX} V ${toY} H ${toX - 6}`
+            : `M ${fromX} ${fromY} V ${fromY + 18 + laneY} H ${toX - 18 - laneX} V ${toY} H ${toX - 6}`;
+
+          paths.push(`<path class="dependency-line-shadow" d="${path}"></path><path class="dependency-line ${isWarning ? "is-warning" : ""}" d="${path}" marker-end="url(#dep-arrow)"></path><path class="dependency-hit" d="${path}" data-remove-dependency-from="${depId}" data-remove-dependency-to="${task.id}"><title>${escapeHtml(dep.task.name)} 竊・${escapeHtml(task.name)} 繧貞炎髯､</title></path>`);
+        });
+      });
+
+      return `<svg class="dependency-layer" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+        <defs>
+          <marker id="dep-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#6fa2d4" opacity="0.62"></path>
+          </marker>
+        </defs>
+        ${paths.join("")}
+      </svg>`;
+    }
+
     function timelineRowHtml(task, index, rangeStart, unitDays, dayW, count) {
       const startOffset = daysBetween(formatDate(rangeStart), task.start) / unitDays * dayW;
       const duration = Math.max(1, daysBetween(task.start, task.end) + 1);
@@ -1594,12 +2273,13 @@
         return `<div class="grid-col ${formatDate(date) === formatDate(today) ? "today" : ""}" style="left:${i * dayW}px"></div>`;
       }).join("");
 
-      return `<div class="timeline-row" data-row="${task.id}" style="top:${index * 0}px">
+      return `<div class="timeline-row" data-timeline-row="${task.id}" style="top:${index * 0}px">
         ${grid}
         <div class="task-bar ${task.type} ${statusClass}" data-drag="${task.id}" style="left:${startOffset}px;width:${width}px">
           ${task.type === "task" ? `<span class="resize left" data-resize="left" data-id="${task.id}"></span>` : ""}
           ${task.type !== "milestone" ? `<div class="progress" style="width:${task.progress}%"></div>` : ""}
           ${task.type === "task" ? `<span class="resize right" data-resize="right" data-id="${task.id}"></span>` : ""}
+          ${task.type !== "group" ? `<span class="dependency-handle left" data-link-from="${task.id}" title="萓晏ｭ倬未菫ゅｒ菴懈・"></span><span class="dependency-handle" data-link-from="${task.id}" title="萓晏ｭ倬未菫ゅｒ菴懈・"></span>` : ""}
           <span class="bar-label">${escapeHtml(task.name)}</span>
         </div>
       </div>`;
@@ -1638,7 +2318,7 @@
         <table class="list-table">
           <thead>
             <tr>
-              <th>タスク名</th><th>種別</th><th>担当者</th><th>状態</th><th>優先度</th><th>開始</th><th>終了</th><th>進捗</th><th>メモ</th>
+              <th>タスク名</th><th>種別</th><th>担当者</th><th>状態</th><th>優先度</th><th>開始</th><th>終了</th><th>進捗</th><th>依存先</th><th>メモ</th>
             </tr>
           </thead>
           <tbody>
@@ -1651,6 +2331,7 @@
               <td>${task.start}</td>
               <td>${task.end}</td>
               <td>${task.progress}%</td>
+              <td>${escapeHtml(dependencyNames(task))}</td>
               <td>${escapeHtml(task.notes || "")}</td>
             </tr>`).join("")}
           </tbody>
@@ -1659,6 +2340,30 @@
     }
 
     function bindGanttEvents(rangeStart, unitDays) {
+      let draggingTaskId = "";
+
+      const shiftRange = amount => {
+        viewStartDate = formatDate(addDays(parseDate(viewStartDate || earliestStart()), amount * unitDays));
+        render();
+      };
+
+      document.querySelectorAll("[data-shift-range]").forEach(button => {
+        button.addEventListener("click", event => {
+          event.stopPropagation();
+          shiftRange(Number(button.dataset.shiftRange));
+        });
+      });
+
+      document.getElementById("timelineScaleSelect")?.addEventListener("change", event => {
+        els.scaleSelect.value = event.target.value;
+        render();
+      });
+
+      document.getElementById("timelineToolbar")?.addEventListener("wheel", event => {
+        event.preventDefault();
+        shiftRange(event.deltaY > 0 ? 1 : -1);
+      }, { passive: false });
+
       document.querySelectorAll("[data-field]").forEach(input => {
         input.addEventListener("click", event => event.stopPropagation());
         input.addEventListener("change", event => {
@@ -1666,8 +2371,21 @@
           if (!task) return;
           const field = event.target.dataset.field;
           task[field] = field === "progress" ? clamp(event.target.value, 0, 100) : event.target.value;
+          if (field === "status") {
+            if (task.status === "done") task.progress = 100;
+            else if (task.status === "todo") task.progress = 0;
+            else if (task.status === "doing" && (task.progress === 0 || task.progress === 100)) task.progress = 50;
+          }
           normalizeTask(task);
           syncParentDates(task.parent);
+          render();
+        });
+      });
+
+      document.querySelectorAll("[data-table-filter]").forEach(select => {
+        select.addEventListener("click", event => event.stopPropagation());
+        select.addEventListener("change", event => {
+          tableFilters[select.dataset.tableFilter] = event.target.value;
           render();
         });
       });
@@ -1688,6 +2406,46 @@
         });
       });
 
+      document.querySelectorAll("[data-reorder]").forEach(row => {
+        row.addEventListener("dragstart", event => {
+          draggingTaskId = row.dataset.reorder;
+          row.classList.add("dragging");
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", draggingTaskId);
+        });
+
+        row.addEventListener("dragend", () => {
+          draggingTaskId = "";
+          document.querySelectorAll(".task-row.dragging, .task-row.drop-before, .task-row.drop-after").forEach(item => {
+            item.classList.remove("dragging", "drop-before", "drop-after");
+          });
+        });
+
+        row.addEventListener("dragover", event => {
+          const sourceId = draggingTaskId || event.dataTransfer.getData("text/plain");
+          const source = tasks.find(task => task.id === sourceId);
+          const target = tasks.find(task => task.id === row.dataset.reorder);
+          if (!source || !target || source.id === target.id || source.parent !== target.parent) return;
+          event.preventDefault();
+          const rect = row.getBoundingClientRect();
+          const place = event.clientY > rect.top + rect.height / 2 ? "after" : "before";
+          row.classList.toggle("drop-before", place === "before");
+          row.classList.toggle("drop-after", place === "after");
+        });
+
+        row.addEventListener("dragleave", () => {
+          row.classList.remove("drop-before", "drop-after");
+        });
+
+        row.addEventListener("drop", event => {
+          event.preventDefault();
+          const sourceId = draggingTaskId || event.dataTransfer.getData("text/plain");
+          const rect = row.getBoundingClientRect();
+          const place = event.clientY > rect.top + rect.height / 2 ? "after" : "before";
+          if (moveTaskBeforeOrAfter(sourceId, row.dataset.reorder, place)) render();
+        });
+      });
+
       document.querySelectorAll("[data-drag]").forEach(bar => {
         bar.addEventListener("mousedown", event => startDrag(event, bar.dataset.drag, rangeStart, unitDays));
       });
@@ -1695,6 +2453,63 @@
       document.querySelectorAll("[data-resize]").forEach(handle => {
         handle.addEventListener("mousedown", event => startResize(event, handle.dataset.id, handle.dataset.resize, unitDays));
       });
+
+      document.querySelectorAll("[data-link-from]").forEach(handle => {
+        handle.addEventListener("mousedown", event => startDependencyLink(event, handle.dataset.linkFrom));
+      });
+
+      document.getElementById("ganttFullscreenToggle")?.addEventListener("click", event => {
+        event.stopPropagation();
+        ganttFullscreen = !ganttFullscreen;
+        activeView = "gantt";
+        render();
+      });
+
+      document.getElementById("addTaskBtn")?.addEventListener("click", () => addTask());
+      document.getElementById("addMilestoneBtn")?.addEventListener("click", () => addTask({ type: "milestone" }));
+
+      document.querySelectorAll("[data-remove-dependency-from]").forEach(path => {
+        path.addEventListener("click", event => {
+          event.stopPropagation();
+          const fromId = path.dataset.removeDependencyFrom;
+          const toId = path.dataset.removeDependencyTo;
+          const from = tasks.find(task => task.id === fromId);
+          const to = tasks.find(task => task.id === toId);
+          if (!from || !to) return;
+          if (confirm(`「${to.name}」から「${from.name}」への依存関係を削除しますか？`)) {
+            removeDependency(fromId, toId);
+            render();
+          }
+        });
+      });
+    }
+
+    function bindGanttScrollSync() {
+      const taskTable = document.querySelector(".task-table");
+      const timeline = document.querySelector(".timeline");
+      const taskRows = document.getElementById("taskRows");
+      if (!taskTable || !timeline) return;
+      taskTable.classList.add("is-y-synced");
+
+      let syncing = false;
+      const syncY = source => {
+        if (syncing) return;
+        syncing = true;
+        const y = source.scrollTop;
+        if (taskRows) taskRows.style.transform = `translateY(${-y}px)`;
+        taskTable.scrollTop = 0;
+        requestAnimationFrame(() => {
+          syncing = false;
+        });
+      };
+
+      timeline.addEventListener("scroll", () => syncY(timeline), { passive: true });
+      taskTable.addEventListener("wheel", event => {
+        if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+        event.preventDefault();
+        timeline.scrollTop += event.deltaY;
+      }, { passive: false });
+      syncY(timeline);
     }
 
     function startDrag(event, id, rangeStart, unitDays) {
@@ -1705,11 +2520,42 @@
       const task = tasks.find(item => item.id === id);
       const moving = [task, ...descendantsOf(id)];
       const startX = event.clientX;
+      const startY = event.clientY;
+      let dragMode = "";
+      let reorderTargetId = "";
+      let reorderPlace = "after";
       const originals = moving.map(item => ({ id: item.id, start: parseDate(item.start), end: parseDate(item.end) }));
       const dayW = els.scaleSelect.value === "week" ? 58 : 36;
 
       document.onmousemove = moveEvent => {
-        const diffDays = Math.round((moveEvent.clientX - startX) / dayW) * unitDays;
+        const moveX = moveEvent.clientX - startX;
+        const moveY = moveEvent.clientY - startY;
+        if (!dragMode && (Math.abs(moveX) > 6 || Math.abs(moveY) > 10)) {
+          dragMode = Math.abs(moveY) > Math.abs(moveX) ? "reorder" : "schedule";
+        }
+
+        if (dragMode === "reorder") {
+          document.querySelectorAll(".timeline-row.drop-before, .timeline-row.drop-after, .task-row.drop-before, .task-row.drop-after").forEach(row => {
+            row.classList.remove("drop-before", "drop-after");
+          });
+
+          const row = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY)?.closest("[data-timeline-row]");
+          const target = row ? tasks.find(item => item.id === row.dataset.timelineRow) : null;
+          if (!target || target.id === id || target.parent !== task.parent) {
+            reorderTargetId = "";
+            return;
+          }
+
+          const rect = row.getBoundingClientRect();
+          reorderPlace = moveEvent.clientY > rect.top + rect.height / 2 ? "after" : "before";
+          reorderTargetId = target.id;
+          row.classList.add(reorderPlace === "after" ? "drop-after" : "drop-before");
+          const sideRow = document.querySelector(`[data-reorder="${CSS.escape(target.id)}"]`);
+          sideRow?.classList.add(reorderPlace === "after" ? "drop-after" : "drop-before");
+          return;
+        }
+
+        const diffDays = Math.round(moveX / dayW) * unitDays;
         moving.forEach(item => {
           const original = originals.find(base => base.id === item.id);
           item.start = formatDate(addDays(original.start, diffDays));
@@ -1722,6 +2568,12 @@
       document.onmouseup = () => {
         document.onmousemove = null;
         document.onmouseup = null;
+        document.querySelectorAll(".timeline-row.drop-before, .timeline-row.drop-after, .task-row.drop-before, .task-row.drop-after").forEach(row => {
+          row.classList.remove("drop-before", "drop-after");
+        });
+        if (dragMode === "reorder" && reorderTargetId) {
+          moveTaskBeforeOrAfter(id, reorderTargetId, reorderPlace);
+        }
         saveTasks();
         render();
       };
@@ -1758,6 +2610,57 @@
       };
     }
 
+    function startDependencyLink(event, fromId) {
+      event.preventDefault();
+      event.stopPropagation();
+      const fromTask = tasks.find(task => task.id === fromId);
+      if (!fromTask) return;
+      document.body.classList.add("linking-dependency");
+
+      const timelineBody = document.getElementById("timelineBody");
+      const bodyRect = timelineBody.getBoundingClientRect();
+      const startX = event.clientX - bodyRect.left + timelineBody.scrollLeft;
+      const startY = event.clientY - bodyRect.top + timelineBody.scrollTop;
+      const preview = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      preview.classList.add("dependency-layer");
+      preview.style.pointerEvents = "none";
+      preview.setAttribute("width", timelineBody.scrollWidth);
+      preview.setAttribute("height", timelineBody.scrollHeight);
+      preview.innerHTML = `<path class="dependency-preview" d="M ${startX} ${startY} L ${startX} ${startY}"></path>`;
+      timelineBody.prepend(preview);
+      const path = preview.querySelector("path");
+      let targetId = "";
+
+      document.onmousemove = moveEvent => {
+        const x = moveEvent.clientX - bodyRect.left + timelineBody.scrollLeft;
+        const y = moveEvent.clientY - bodyRect.top + timelineBody.scrollTop;
+        const midX = Math.max(startX + 20, (startX + x) / 2);
+        path.setAttribute("d", `M ${startX} ${startY} H ${midX} V ${y} H ${x}`);
+
+        document.querySelectorAll(".timeline-row.dependency-target").forEach(row => row.classList.remove("dependency-target"));
+        const row = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY)?.closest("[data-timeline-row]");
+        const target = row ? tasks.find(task => task.id === row.dataset.timelineRow) : null;
+        targetId = target && target.id !== fromId && target.type !== "group" ? target.id : "";
+        if (targetId) row.classList.add("dependency-target");
+      };
+
+      document.onmouseup = () => {
+        document.onmousemove = null;
+        document.onmouseup = null;
+        document.body.classList.remove("linking-dependency");
+        preview.remove();
+        document.querySelectorAll(".timeline-row.dependency-target").forEach(row => row.classList.remove("dependency-target"));
+        if (targetId) {
+          const target = tasks.find(task => task.id === targetId);
+          target.dependencies = Array.isArray(target.dependencies) ? target.dependencies : [];
+          if (!target.dependencies.includes(fromId)) target.dependencies.push(fromId);
+          normalizeTask(target);
+          saveTasks();
+        }
+        render();
+      };
+    }
+
     function earliestStart() {
       return tasks.map(task => task.start).sort()[0] || formatDate(today);
     }
@@ -1780,6 +2683,7 @@
         start: baseDate,
         end: overrides.type === "milestone" ? baseDate : formatDate(addDays(today, 4)),
         progress: 0,
+        dependencies: [],
         parent,
         type: overrides.type || "task",
         expanded: true,
@@ -1810,6 +2714,10 @@
         .filter(item => item.id !== id && !descendantsOf(id).some(child => child.id === item.id))
         .map(item => `<option value="${item.id}" ${task.parent === item.id ? "selected" : ""}>${escapeHtml(item.name)}</option>`)
         .join("");
+      document.getElementById("formDependencies").innerHTML = tasks
+        .filter(item => item.id !== id && item.type !== "group" && !descendantsOf(id).some(child => child.id === item.id))
+        .map(item => `<option value="${item.id}" ${(task.dependencies || []).includes(item.id) ? "selected" : ""}>${escapeHtml(item.name)}</option>`)
+        .join("");
       els.drawer.classList.add("open");
     }
 
@@ -1822,6 +2730,9 @@
       const ids = new Set([id, ...descendantsOf(id).map(task => task.id)]);
       const parent = tasks.find(task => task.id === id)?.parent || "";
       tasks = tasks.filter(task => !ids.has(task.id));
+      tasks.forEach(task => {
+        task.dependencies = (task.dependencies || []).filter(depId => !ids.has(depId));
+      });
       syncParentDates(parent);
       selectedTaskId = "";
       closeDrawer();
@@ -1829,7 +2740,7 @@
     }
 
     function exportCsv() {
-      const header = ["タスク名", "種別", "担当者", "状態", "優先度", "開始日", "終了日", "進捗", "親タスク", "メモ"];
+      const header = ["タスク名", "種別", "担当者", "状態", "優先度", "開始日", "終了日", "進捗", "親タスク", "依存先", "メモ"];
       const rows = tasks.map(task => [
         task.name,
         task.type,
@@ -1840,6 +2751,7 @@
         task.end,
         `${task.progress}%`,
         tasks.find(item => item.id === task.parent)?.name || "",
+        dependencyNames(task),
         task.notes || ""
       ]);
       const csv = [header, ...rows].map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(",")).join("\n");
@@ -1858,19 +2770,17 @@
       });
     });
 
-    [els.searchInput, els.statusFilter, els.ownerFilter, els.scaleSelect, els.startInput].forEach(input => {
+    [els.scaleSelect].forEach(input => {
       input.addEventListener("input", render);
       input.addEventListener("change", render);
     });
 
-    document.getElementById("addTaskBtn").addEventListener("click", () => addTask());
-    document.getElementById("addMilestoneBtn").addEventListener("click", () => addTask({ type: "milestone" }));
     document.getElementById("exportBtn").addEventListener("click", exportCsv);
     document.getElementById("resetBtn").addEventListener("click", () => {
       if (confirm("初期データに戻しますか？現在のローカルデータは上書きされます。")) {
         tasks = structuredClone(seedTasks);
         selectedTaskId = "";
-        els.startInput.value = earliestStart();
+        viewStartDate = earliestStart();
         render();
       }
     });
@@ -1886,6 +2796,22 @@
       if (opener) openDrawer(opener.dataset.open);
     });
 
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && ganttFullscreen) {
+        ganttFullscreen = false;
+        render();
+        return;
+      }
+      if (event.key !== "Delete" || !selectedTaskId) return;
+      const target = event.target;
+      const isEditing = target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
+      if (isEditing || els.drawer.classList.contains("open")) return;
+      const task = tasks.find(item => item.id === selectedTaskId);
+      if (task && confirm(`「${task.name}」を削除しますか？子タスクも削除されます。`)) {
+        deleteTask(selectedTaskId);
+      }
+    });
+
     els.taskForm.addEventListener("submit", event => {
       event.preventDefault();
       const task = tasks.find(item => item.id === editingTaskId);
@@ -1898,8 +2824,12 @@
       task.priority = document.getElementById("formPriority").value;
       task.owner = document.getElementById("formOwner").value.trim();
       task.progress = clamp(document.getElementById("formProgress").value, 0, 100);
+      if (task.status === "done") task.progress = 100;
+      else if (task.status === "todo") task.progress = 0;
+      else if (task.status === "doing" && (task.progress === 0 || task.progress === 100)) task.progress = 50;
       task.start = document.getElementById("formStart").value;
       task.end = document.getElementById("formEnd").value;
+      task.dependencies = Array.from(document.getElementById("formDependencies").selectedOptions).map(option => option.value);
       task.notes = document.getElementById("formNotes").value.trim();
       normalizeTask(task);
       syncParentDates(oldParent);
@@ -1912,8 +2842,9 @@
       if (editingTaskId && confirm("このタスクと子タスクを削除しますか？")) deleteTask(editingTaskId);
     });
 
-    els.startInput.value = earliestStart();
+    viewStartDate = earliestStart();
     render();
   </script>
 </body>
 </html>
+
