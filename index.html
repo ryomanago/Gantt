@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Planner Prototype</title>
+  <style>
+    :root {
+      --bg: #eef2f7;
+      --surface: #ffffff;
+      --surface-soft: #f7f9fc;
+      --surface-muted: #edf2f8;
+      --line: #d8e0ea;
+      --line-strong: #bfccd9;
+      --text: #111827;
+      --muted: #64748b;
+      --primary: #2251c7;
+      --primary-dark: #173b95;
+      --accent: #0f9f6e;
+      --warning: #d99010;
+      --danger: #db3b3b;
+      --purple: #6846c7;
+      --row-h: 44px;
+      --day-w: 36px;
+      --left-w: 560px;
+      --radius: 8px;
+      --shadow: 0 18px 48px rgba(24, 39, 75, 0.11);
+      --focus: 0 0 0 3px rgba(34, 81, 199, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, #f8fafc 0, var(--bg) 210px),
+        var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", "Meiryo", "Hiragino Kaku Gothic ProN", sans-serif;
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 22px 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 220px;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .brand span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .btn {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 0 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      color: var(--text);
+      background: var(--surface);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn.primary {
+      color: #fff;
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .btn.primary:hover {
+      background: var(--primary-dark);
+      color: #fff;
+    }
+
+    .btn.icon {
+      width: 34px;
+      padding: 0;
+      font-size: 17px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: minmax(180px, 1.3fr) repeat(4, minmax(130px, 0.7fr));
+      gap: 10px;
+      padding: 12px 22px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      min-height: 34px;
+      padding: 0 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .workspace {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+    }
+
+    .summary {
+      min-height: 0;
+      padding: 18px;
+      background: #eef3fa;
+      border-right: 1px solid var(--line);
+      overflow: auto;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .metric {
+      padding: 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .section-title {
+      margin: 18px 0 8px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .health {
+      display: grid;
+      gap: 8px;
+    }
+
+    .health-row {
+      display: grid;
+      grid-template-columns: 86px 1fr 34px;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .bar-track {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e5eaf1;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--primary);
+    }
+
+    .main {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .tabs {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 18px 0;
+      background: var(--bg);
+    }
+
+    .tab {
+      min-width: 86px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-bottom: 0;
+      border-radius: 8px 8px 0 0;
+      background: #e9eef5;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .tab.active {
+      background: var(--surface);
+      color: var(--primary);
+    }
+
+    .view {
+      min-width: 0;
+      min-height: 0;
+      margin: 0 18px 18px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .gantt {
+      height: 100%;
+      display: grid;
+      grid-template-columns: minmax(390px, var(--left-w)) 1fr;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .task-table,
+    .timeline {
+      min-height: 0;
+      overflow: auto;
+    }
+
+    .task-table {
+      border-right: 1px solid var(--line);
+    }
+
+    .table-head,
+    .task-row {
+      display: grid;
+      grid-template-columns: 1.7fr 90px 86px 86px 72px 46px;
+      align-items: center;
+      min-width: 540px;
+    }
+
+    .table-head {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      height: 58px;
+      padding: 0 10px;
+      background: var(--surface-soft);
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .task-row {
+      height: var(--row-h);
+      padding: 0 10px;
+      border-bottom: 1px solid #edf1f6;
+      cursor: pointer;
+    }
+
+    .task-row:hover,
+    .task-row.selected {
+      background: #eff6ff;
+    }
+
+    .name-cell {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tree-toggle {
+      width: 20px;
+      height: 24px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 5px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .tree-toggle:hover {
+      background: #e7eef8;
+      color: var(--primary);
+    }
+
+    .type-dot {
+      width: 10px;
+      height: 10px;
+      flex: 0 0 10px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .type-dot.milestone {
+      border-radius: 2px;
+      transform: rotate(45deg);
+      background: var(--danger);
+    }
+
+    .type-dot.group {
+      width: 12px;
+      height: 8px;
+      border-radius: 2px;
+      background: var(--purple);
+    }
+
+    .cell-input {
+      width: 100%;
+      min-width: 0;
+      height: 28px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text);
+      padding: 0 6px;
+    }
+
+    .cell-input:hover,
+    .cell-input:focus {
+      border-color: var(--line-strong);
+      background: #fff;
+    }
+
+    .mini-select {
+      width: calc(100% - 4px);
+      height: 28px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      padding: 0 6px;
+      font-size: 12px;
+    }
+
+    .date-text {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timeline-head {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      width: max-content;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .month-row,
+    .day-row {
+      display: flex;
+      height: 29px;
+    }
+
+    .month-cell,
+    .day-cell {
+      flex: 0 0 var(--day-w);
+      width: var(--day-w);
+      border-right: 1px solid #edf1f6;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .month-cell {
+      justify-content: start;
+      padding-left: 10px;
+      background: var(--surface-soft);
+      border-bottom: 1px solid #edf1f6;
+    }
+
+    .day-cell.today,
+    .grid-col.today {
+      background: #fff7ed;
+      color: #c2410c;
+    }
+
+    .timeline-body {
+      position: relative;
+      width: max-content;
+      min-height: 100%;
+    }
+
+    .timeline-row {
+      position: relative;
+      height: var(--row-h);
+      border-bottom: 1px solid #edf1f6;
+    }
+
+    .grid-col {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: var(--day-w);
+      border-right: 1px solid #edf1f6;
+      pointer-events: none;
+    }
+
+    .task-bar {
+      position: absolute;
+      top: 13px;
+      height: 18px;
+      min-width: 10px;
+      border-radius: 5px;
+      background: #cbd5e1;
+      cursor: grab;
+      overflow: visible;
+    }
+
+    .task-bar:active {
+      cursor: grabbing;
+    }
+
+    .task-bar.group {
+      top: 19px;
+      height: 5px;
+      background: var(--purple);
+      border-radius: 999px;
+    }
+
+    .task-bar.milestone {
+      width: 14px;
+      min-width: 14px;
+      height: 14px;
+      top: 15px;
+      border-radius: 3px;
+      background: var(--danger);
+      transform: rotate(45deg);
+    }
+
+    .progress {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--primary);
+      pointer-events: none;
+    }
+
+    .task-bar.done .progress {
+      background: var(--accent);
+    }
+
+    .task-bar.blocked .progress {
+      background: var(--danger);
+    }
+
+    .bar-label {
+      position: absolute;
+      left: calc(100% + 8px);
+      top: 50%;
+      transform: translateY(-50%);
+      max-width: 210px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    .task-bar.milestone .bar-label {
+      transform: rotate(-45deg) translate(9px, -17px);
+    }
+
+    .resize {
+      position: absolute;
+      top: 0;
+      width: 8px;
+      height: 100%;
+      cursor: ew-resize;
+    }
+
+    .resize.left {
+      left: -2px;
+    }
+
+    .resize.right {
+      right: -2px;
+    }
+
+    .board {
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(190px, 1fr));
+      gap: 12px;
+      padding: 14px;
+      overflow: auto;
+      background: #f8fafc;
+    }
+
+    .lane {
+      min-width: 190px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      background: #eef3fa;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .lane h2 {
+      margin: 0;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .lane-body {
+      padding: 10px;
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      overflow: auto;
+    }
+
+    .task-card {
+      padding: 10px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+
+    .task-card:hover {
+      border-color: var(--primary);
+    }
+
+    .task-card strong {
+      display: block;
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .pill.high {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .pill.medium {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .pill.low {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .list-view {
+      height: 100%;
+      overflow: auto;
+    }
+
+    .list-table {
+      width: 100%;
+      min-width: 920px;
+      border-collapse: collapse;
+    }
+
+    .list-table th,
+    .list-table td {
+      height: 44px;
+      padding: 8px 10px;
+      border-bottom: 1px solid #edf1f6;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .list-table th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .drawer {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      background: rgba(15, 23, 42, 0.28);
+    }
+
+    .drawer.open {
+      display: grid;
+      justify-content: end;
+    }
+
+    .drawer-panel {
+      width: min(440px, 100vw);
+      height: 100vh;
+      padding: 18px;
+      background: var(--surface);
+      box-shadow: -18px 0 42px rgba(15, 23, 42, 0.16);
+      overflow: auto;
+    }
+
+    .drawer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .drawer-head h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-grid .wide {
+      grid-column: 1 / -1;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 10px;
+      resize: vertical;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      font: inherit;
+    }
+
+    .drawer-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .empty {
+      padding: 42px 16px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .topbar {
+      padding: 18px 24px 16px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+    }
+
+    .brand-mark {
+      background: linear-gradient(135deg, var(--primary), #2d7be8);
+      box-shadow: 0 8px 18px rgba(34, 81, 199, 0.24);
+    }
+
+    .brand h1 {
+      font-weight: 800;
+    }
+
+    .btn {
+      border-color: #cbd6e3;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+      transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+    }
+
+    .btn:hover {
+      background: #f8fbff;
+      transform: translateY(-1px);
+    }
+
+    .btn:focus-visible,
+    .field input:focus,
+    .field select:focus,
+    textarea:focus,
+    .cell-input:focus,
+    .mini-select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: var(--focus);
+    }
+
+    .btn.primary {
+      box-shadow: 0 8px 18px rgba(34, 81, 199, 0.22);
+    }
+
+    .filters {
+      padding: 14px 24px;
+      background: rgba(255, 255, 255, 0.88);
+    }
+
+    .field label,
+    .table-head,
+    .list-table th {
+      text-transform: none;
+    }
+
+    .field input,
+    .field select,
+    textarea {
+      border-color: #c7d2df;
+      background: #fbfdff;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    }
+
+    .field input:hover,
+    .field select:hover,
+    textarea:hover {
+      background: #fff;
+      border-color: #aebdcb;
+    }
+
+    .workspace {
+      background: linear-gradient(90deg, #e7edf5 0, #e7edf5 280px, transparent 280px);
+    }
+
+    .summary {
+      background: #e7edf5;
+    }
+
+    .metric,
+    .health-row,
+    .task-card {
+      border-color: rgba(190, 203, 218, 0.78);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+    }
+
+    .metric strong {
+      color: #0f172a;
+      font-weight: 850;
+    }
+
+    .health-row {
+      min-height: 40px;
+    }
+
+    .bar-track {
+      background: #dfe7f1;
+    }
+
+    .tabs {
+      padding: 14px 18px 0;
+    }
+
+    .tab {
+      background: #dde5ef;
+      border-color: #cbd6e3;
+      transition: background 0.16s ease, color 0.16s ease;
+    }
+
+    .tab.active {
+      background: var(--surface);
+      box-shadow: 0 -1px 0 #fff inset;
+    }
+
+    .view {
+      border-color: #cbd6e3;
+      border-radius: 0 8px 8px 8px;
+    }
+
+    .table-head,
+    .timeline-head,
+    .list-table th {
+      background: #f2f5f9;
+    }
+
+    .table-head,
+    .task-row {
+      grid-template-columns: 1.8fr 92px 86px 86px 74px 46px;
+    }
+
+    .task-row,
+    .timeline-row,
+    .list-table th,
+    .list-table td {
+      border-bottom-color: #e7edf4;
+    }
+
+    .task-row:hover,
+    .task-row.selected {
+      background: #eef5ff;
+    }
+
+    .type-dot {
+      box-shadow: 0 0 0 3px rgba(34, 81, 199, 0.1);
+    }
+
+    .type-dot.group {
+      box-shadow: 0 0 0 3px rgba(104, 70, 199, 0.11);
+    }
+
+    .type-dot.milestone {
+      box-shadow: 0 0 0 3px rgba(219, 59, 59, 0.12);
+    }
+
+    .mini-select,
+    .cell-input {
+      color: #1f2937;
+    }
+
+    .timeline {
+      background: #fbfdff;
+    }
+
+    .month-cell {
+      background: #f2f5f9;
+      color: #475569;
+    }
+
+    .day-cell {
+      background: #fbfdff;
+    }
+
+    .day-cell.today,
+    .grid-col.today {
+      background: #fff4e5;
+      color: #b45309;
+    }
+
+    .grid-col {
+      border-right-color: #e7edf4;
+    }
+
+    .task-bar {
+      background: #cbd5e1;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+    }
+
+    .task-bar.group {
+      box-shadow: none;
+    }
+
+    .progress {
+      background: linear-gradient(90deg, #2251c7, #2e73df);
+    }
+
+    .task-bar.done .progress {
+      background: linear-gradient(90deg, #0f9f6e, #19b98a);
+    }
+
+    .task-bar.blocked .progress {
+      background: linear-gradient(90deg, #db3b3b, #f05a5a);
+    }
+
+    .board {
+      background: #f4f7fb;
+    }
+
+    .lane {
+      background: #eef3f8;
+      border-color: #d3dde8;
+    }
+
+    .lane h2 {
+      background: #fbfdff;
+    }
+
+    .task-card {
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+    }
+
+    .task-card:hover {
+      box-shadow: 0 10px 22px rgba(24, 39, 75, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .pill {
+      background: #e7edff;
+      color: #243c94;
+    }
+
+    .drawer {
+      background: rgba(15, 23, 42, 0.36);
+      backdrop-filter: blur(2px);
+    }
+
+    .drawer-panel {
+      border-left: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: -22px 0 54px rgba(15, 23, 42, 0.2);
+    }
+
+    @media (max-width: 1120px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .summary {
+        display: none;
+      }
+
+      .filters {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .actions {
+        justify-content: stretch;
+      }
+
+      .actions .btn {
+        flex: 1 1 110px;
+      }
+
+      .filters {
+        grid-template-columns: 1fr;
+        padding: 12px;
+      }
+
+      .tabs {
+        padding-left: 10px;
+        overflow-x: auto;
+      }
+
+      .view {
+        margin: 0 10px 10px;
+      }
+
+      .gantt {
+        grid-template-columns: 480px 1fr;
+      }
+
+      .board {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">P</div>
+        <div>
+          <h1>Project Planner</h1>
+          <span id="projectRange">期間を計算中</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="addTaskBtn">＋ タスク</button>
+        <button class="btn" id="addMilestoneBtn">◇ マイルストーン</button>
+        <button class="btn" id="exportBtn">CSV出力</button>
+        <button class="btn" id="resetBtn">初期データ</button>
+      </div>
+    </header>
+
+    <section class="filters" aria-label="表示条件">
+      <div class="field">
+        <label for="searchInput">検索</label>
+        <input id="searchInput" type="search" placeholder="タスク名、担当者、メモ">
+      </div>
+      <div class="field">
+        <label for="statusFilter">ステータス</label>
+        <select id="statusFilter"></select>
+      </div>
+      <div class="field">
+        <label for="ownerFilter">担当者</label>
+        <select id="ownerFilter"></select>
+      </div>
+      <div class="field">
+        <label for="scaleSelect">表示単位</label>
+        <select id="scaleSelect">
+          <option value="day">日</option>
+          <option value="week">週</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="startInput">表示開始日</label>
+        <input id="startInput" type="date">
+      </div>
+    </section>
+
+    <div class="workspace">
+      <aside class="summary">
+        <div class="metric-grid">
+          <div class="metric"><strong id="totalCount">0</strong><span>全タスク</span></div>
+          <div class="metric"><strong id="doneCount">0</strong><span>完了</span></div>
+          <div class="metric"><strong id="lateCount">0</strong><span>期限超過</span></div>
+          <div class="metric"><strong id="avgProgress">0%</strong><span>平均進捗</span></div>
+        </div>
+        <div class="section-title">ステータス</div>
+        <div class="health" id="statusHealth"></div>
+        <div class="section-title">次の期限</div>
+        <div class="health" id="upcomingList"></div>
+      </aside>
+
+      <main class="main">
+        <nav class="tabs" aria-label="ビュー切り替え">
+          <button class="tab active" data-view="gantt">ガント</button>
+          <button class="tab" data-view="board">ボード</button>
+          <button class="tab" data-view="list">リスト</button>
+        </nav>
+        <section class="view" id="viewRoot"></section>
+      </main>
+    </div>
+  </div>
+
+  <div class="drawer" id="drawer">
+    <form class="drawer-panel" id="taskForm">
+      <div class="drawer-head">
+        <h2 id="drawerTitle">タスク編集</h2>
+        <button class="btn icon" type="button" id="closeDrawerBtn" title="閉じる">×</button>
+      </div>
+      <div class="form-grid">
+        <div class="field wide">
+          <label for="formName">タスク名</label>
+          <input id="formName" required>
+        </div>
+        <div class="field">
+          <label for="formType">種別</label>
+          <select id="formType">
+            <option value="task">タスク</option>
+            <option value="milestone">マイルストーン</option>
+            <option value="group">グループ</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="formParent">親タスク</label>
+          <select id="formParent"></select>
+        </div>
+        <div class="field">
+          <label for="formStatus">ステータス</label>
+          <select id="formStatus"></select>
+        </div>
+        <div class="field">
+          <label for="formPriority">優先度</label>
+          <select id="formPriority"></select>
+        </div>
+        <div class="field">
+          <label for="formOwner">担当者</label>
+          <input id="formOwner" list="ownerOptions">
+          <datalist id="ownerOptions"></datalist>
+        </div>
+        <div class="field">
+          <label for="formProgress">進捗</label>
+          <input id="formProgress" type="number" min="0" max="100">
+        </div>
+        <div class="field">
+          <label for="formStart">開始日</label>
+          <input id="formStart" type="date" required>
+        </div>
+        <div class="field">
+          <label for="formEnd">終了日</label>
+          <input id="formEnd" type="date" required>
+        </div>
+        <div class="field wide">
+          <label for="formNotes">メモ</label>
+          <textarea id="formNotes"></textarea>
+        </div>
+      </div>
+      <div class="drawer-actions">
+        <button class="btn" type="button" id="deleteTaskBtn">削除</button>
+        <div>
+          <button class="btn" type="button" id="cancelBtn">キャンセル</button>
+          <button class="btn primary" type="submit">保存</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "project-planner-prototype-v1";
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const statusMeta = {
+      todo: { label: "未着手", color: "#64748b" },
+      doing: { label: "進行中", color: "#2563eb" },
+      review: { label: "レビュー", color: "#7c3aed" },
+      done: { label: "完了", color: "#10b981" },
+      blocked: { label: "保留", color: "#ef4444" }
+    };
+
+    const priorityMeta = {
+      high: "高",
+      medium: "中",
+      low: "低"
+    };
+
+    const seedTasks = [
+      {
+        id: "p1",
+        name: "新規サービス立ち上げ",
+        owner: "PM",
+        status: "doing",
+        priority: "high",
+        start: "2026-05-10",
+        end: "2026-06-03",
+        progress: 46,
+        parent: "",
+        type: "group",
+        expanded: true,
+        notes: "全体計画、主要マイルストーン、リリース判定を管理する。"
+      },
+      {
+        id: "t1",
+        name: "要件整理",
+        owner: "佐藤",
+        status: "done",
+        priority: "high",
+        start: "2026-05-10",
+        end: "2026-05-14",
+        progress: 100,
+        parent: "p1",
+        type: "task",
+        expanded: true,
+        notes: "関係者レビュー済み。"
+      },
+      {
+        id: "m1",
+        name: "要件確定",
+        owner: "PM",
+        status: "done",
+        priority: "high",
+        start: "2026-05-15",
+        end: "2026-05-15",
+        progress: 100,
+        parent: "p1",
+        type: "milestone",
+        expanded: true,
+        notes: "仕様の凍結ポイント。"
+      },
+      {
+        id: "t2",
+        name: "UIプロトタイプ作成",
+        owner: "田中",
+        status: "doing",
+        priority: "medium",
+        start: "2026-05-16",
+        end: "2026-05-24",
+        progress: 55,
+        parent: "p1",
+        type: "task",
+        expanded: true,
+        notes: "主要3画面の操作感を確認する。"
+      },
+      {
+        id: "t3",
+        name: "API設計",
+        owner: "鈴木",
+        status: "review",
+        priority: "medium",
+        start: "2026-05-18",
+        end: "2026-05-27",
+        progress: 70,
+        parent: "p1",
+        type: "task",
+        expanded: true,
+        notes: "認証と通知周りを重点確認。"
+      },
+      {
+        id: "t4",
+        name: "β版リリース準備",
+        owner: "山田",
+        status: "todo",
+        priority: "high",
+        start: "2026-05-28",
+        end: "2026-06-03",
+        progress: 0,
+        parent: "p1",
+        type: "task",
+        expanded: true,
+        notes: "リリースノート、検証観点、戻し手順をまとめる。"
+      }
+    ];
+
+    let tasks = loadTasks();
+    let activeView = "gantt";
+    let selectedTaskId = "";
+    let editingTaskId = "";
+
+    const els = {
+      viewRoot: document.getElementById("viewRoot"),
+      searchInput: document.getElementById("searchInput"),
+      statusFilter: document.getElementById("statusFilter"),
+      ownerFilter: document.getElementById("ownerFilter"),
+      scaleSelect: document.getElementById("scaleSelect"),
+      startInput: document.getElementById("startInput"),
+      drawer: document.getElementById("drawer"),
+      taskForm: document.getElementById("taskForm")
+    };
+
+    function loadTasks() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        return Array.isArray(stored) && stored.length ? stored : structuredClone(seedTasks);
+      } catch {
+        return structuredClone(seedTasks);
+      }
+    }
+
+    function saveTasks() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    }
+
+    function parseDate(value) {
+      const parts = String(value || "").split("-").map(Number);
+      const date = new Date(parts[0], (parts[1] || 1) - 1, parts[2] || 1);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
+
+    function formatDate(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    function addDays(date, days) {
+      const next = new Date(date);
+      next.setDate(next.getDate() + days);
+      return next;
+    }
+
+    function daysBetween(a, b) {
+      return Math.round((parseDate(b) - parseDate(a)) / 86400000);
+    }
+
+    function clamp(num, min, max) {
+      return Math.min(max, Math.max(min, Number(num) || 0));
+    }
+
+    function normalizeTask(task) {
+      if (task.type === "milestone") task.end = task.start;
+      if (parseDate(task.end) < parseDate(task.start)) task.end = task.start;
+      task.progress = clamp(task.progress, 0, 100);
+      if (task.status === "done") task.progress = 100;
+      if (task.progress === 100 && task.status !== "blocked") task.status = "done";
+    }
+
+    function childrenOf(parentId) {
+      return tasks.filter(task => task.parent === parentId);
+    }
+
+    function descendantsOf(parentId) {
+      return childrenOf(parentId).flatMap(child => [child, ...descendantsOf(child.id)]);
+    }
+
+    function visibleTasks() {
+      const query = els.searchInput.value.trim().toLowerCase();
+      const status = els.statusFilter.value;
+      const owner = els.ownerFilter.value;
+      const matchedIds = new Set();
+
+      tasks.forEach(task => {
+        const haystack = `${task.name} ${task.owner} ${task.notes}`.toLowerCase();
+        const matchesQuery = !query || haystack.includes(query);
+        const matchesStatus = !status || task.status === status;
+        const matchesOwner = !owner || task.owner === owner;
+        if (matchesQuery && matchesStatus && matchesOwner) {
+          matchedIds.add(task.id);
+          let parent = tasks.find(item => item.id === task.parent);
+          while (parent) {
+            matchedIds.add(parent.id);
+            parent = tasks.find(item => item.id === parent.parent);
+          }
+        }
+      });
+
+      const rows = [];
+      function walk(parentId, level) {
+        childrenOf(parentId).forEach(task => {
+          if (matchedIds.has(task.id)) rows.push({ task, level });
+          if (task.expanded !== false || query || status || owner) walk(task.id, level + 1);
+        });
+      }
+      walk("", 0);
+      return rows;
+    }
+
+    function taskStats(baseTasks = tasks.filter(task => task.type !== "group")) {
+      const total = baseTasks.length;
+      const done = baseTasks.filter(task => task.status === "done").length;
+      const late = baseTasks.filter(task => task.status !== "done" && parseDate(task.end) < today).length;
+      const avg = total ? Math.round(baseTasks.reduce((sum, task) => sum + Number(task.progress || 0), 0) / total) : 0;
+      return { total, done, late, avg };
+    }
+
+    function syncParentDates(parentId) {
+      if (!parentId) return;
+      const parent = tasks.find(task => task.id === parentId);
+      const kids = childrenOf(parentId);
+      if (parent && kids.length) {
+        parent.start = kids.map(task => task.start).sort()[0];
+        parent.end = kids.map(task => task.end).sort().at(-1);
+        const trackable = kids.filter(task => task.type !== "milestone");
+        parent.progress = trackable.length
+          ? Math.round(trackable.reduce((sum, task) => sum + Number(task.progress || 0), 0) / trackable.length)
+          : Math.round(kids.reduce((sum, task) => sum + Number(task.progress || 0), 0) / kids.length);
+        parent.status = parent.progress >= 100 ? "done" : parent.progress > 0 ? "doing" : "todo";
+        syncParentDates(parent.parent);
+      }
+    }
+
+    function updateSelectOptions() {
+      const selectedStatus = els.statusFilter.value;
+      const selectedOwner = els.ownerFilter.value;
+
+      els.statusFilter.innerHTML = `<option value="">すべて</option>` + Object.entries(statusMeta)
+        .map(([value, meta]) => `<option value="${value}">${meta.label}</option>`).join("");
+      els.statusFilter.value = selectedStatus;
+
+      const owners = [...new Set(tasks.map(task => task.owner).filter(Boolean))].sort();
+      els.ownerFilter.innerHTML = `<option value="">すべて</option>` + owners
+        .map(owner => `<option value="${escapeHtml(owner)}">${escapeHtml(owner)}</option>`).join("");
+      els.ownerFilter.value = owners.includes(selectedOwner) ? selectedOwner : "";
+
+      document.getElementById("ownerOptions").innerHTML = owners
+        .map(owner => `<option value="${escapeHtml(owner)}"></option>`).join("");
+
+      document.getElementById("formStatus").innerHTML = Object.entries(statusMeta)
+        .map(([value, meta]) => `<option value="${value}">${meta.label}</option>`).join("");
+      document.getElementById("formPriority").innerHTML = Object.entries(priorityMeta)
+        .map(([value, label]) => `<option value="${value}">${label}</option>`).join("");
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function render() {
+      tasks.forEach(normalizeTask);
+      saveTasks();
+      updateSelectOptions();
+      renderSummary();
+
+      document.querySelectorAll(".tab").forEach(tab => {
+        tab.classList.toggle("active", tab.dataset.view === activeView);
+      });
+
+      if (activeView === "board") renderBoard();
+      else if (activeView === "list") renderList();
+      else renderGantt();
+    }
+
+    function renderSummary() {
+      const stats = taskStats();
+      document.getElementById("totalCount").textContent = stats.total;
+      document.getElementById("doneCount").textContent = stats.done;
+      document.getElementById("lateCount").textContent = stats.late;
+      document.getElementById("avgProgress").textContent = `${stats.avg}%`;
+
+      const starts = tasks.map(task => task.start).sort();
+      const ends = tasks.map(task => task.end).sort();
+      document.getElementById("projectRange").textContent = `${compactDate(starts[0])} - ${compactDate(ends.at(-1))}`;
+
+      const total = Math.max(1, tasks.filter(task => task.type !== "group").length);
+      document.getElementById("statusHealth").innerHTML = Object.entries(statusMeta).map(([status, meta]) => {
+        const count = tasks.filter(task => task.type !== "group" && task.status === status).length;
+        const pct = Math.round(count / total * 100);
+        return `<div class="health-row">
+          <span>${meta.label}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${meta.color}"></div></div>
+          <strong>${count}</strong>
+        </div>`;
+      }).join("");
+
+      const upcoming = tasks
+        .filter(task => task.type !== "group" && task.status !== "done")
+        .sort((a, b) => parseDate(a.end) - parseDate(b.end))
+        .slice(0, 4);
+      document.getElementById("upcomingList").innerHTML = upcoming.length ? upcoming.map(task => `
+        <div class="health-row">
+          <span>${compactDate(task.end)}</span>
+          <div title="${escapeHtml(task.name)}">${escapeHtml(task.name)}</div>
+          <strong>${task.progress}%</strong>
+        </div>
+      `).join("") : `<div class="empty">未完了タスクはありません</div>`;
+    }
+
+    function compactDate(value) {
+      if (!value) return "-";
+      const date = parseDate(value);
+      return `${date.getMonth() + 1}/${date.getDate()}`;
+    }
+
+    function renderGantt() {
+      const rows = visibleTasks();
+      const scale = els.scaleSelect.value;
+      const unitDays = scale === "week" ? 7 : 1;
+      const dayW = scale === "week" ? 58 : 36;
+      document.documentElement.style.setProperty("--day-w", `${dayW}px`);
+      const rangeStart = parseDate(els.startInput.value || earliestStart());
+      const columnCount = scale === "week" ? 18 : 54;
+      const timelineWidth = columnCount * dayW;
+
+      els.viewRoot.innerHTML = `
+        <div class="gantt">
+          <div class="task-table">
+            <div class="table-head">
+              <div>タスク名</div><div>状態</div><div>開始</div><div>終了</div><div>進捗</div><div></div>
+            </div>
+            <div id="taskRows"></div>
+          </div>
+          <div class="timeline">
+            <div class="timeline-head" id="timelineHead"></div>
+            <div class="timeline-body" id="timelineBody" style="width:${timelineWidth}px"></div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById("taskRows").innerHTML = rows.map(({ task, level }) => taskRowHtml(task, level)).join("")
+        || `<div class="empty">条件に合うタスクがありません</div>`;
+
+      const { monthRow, dayRow } = timelineHeader(rangeStart, columnCount, unitDays, dayW);
+      document.getElementById("timelineHead").innerHTML = monthRow + dayRow;
+
+      const timelineBody = document.getElementById("timelineBody");
+      timelineBody.style.height = `${Math.max(rows.length, 1) * 44}px`;
+      timelineBody.innerHTML = rows.map(({ task }, index) => timelineRowHtml(task, index, rangeStart, unitDays, dayW, columnCount)).join("");
+      bindGanttEvents(rangeStart, unitDays);
+    }
+
+    function taskRowHtml(task, level) {
+      const canExpand = childrenOf(task.id).length > 0;
+      const indent = level * 18;
+      return `<div class="task-row ${selectedTaskId === task.id ? "selected" : ""}" data-open="${task.id}">
+        <div class="name-cell" style="padding-left:${indent}px">
+          <button class="tree-toggle" data-toggle="${task.id}" title="開閉">${canExpand ? (task.expanded === false ? "›" : "⌄") : ""}</button>
+          <span class="type-dot ${task.type}"></span>
+          <input class="cell-input" value="${escapeHtml(task.name)}" data-field="name" data-id="${task.id}" aria-label="タスク名">
+        </div>
+        <div><select class="mini-select" data-field="status" data-id="${task.id}">${statusOptions(task.status)}</select></div>
+        <div class="date-text">${compactDate(task.start)}</div>
+        <div class="date-text">${compactDate(task.end)}</div>
+        <div><input class="cell-input" type="number" min="0" max="100" value="${task.progress}" data-field="progress" data-id="${task.id}" aria-label="進捗"></div>
+        <div><button class="btn icon" data-child="${task.id}" title="子タスク追加">＋</button></div>
+      </div>`;
+    }
+
+    function statusOptions(current) {
+      return Object.entries(statusMeta)
+        .map(([value, meta]) => `<option value="${value}" ${current === value ? "selected" : ""}>${meta.label}</option>`)
+        .join("");
+    }
+
+    function timelineHeader(start, count, unitDays, dayW) {
+      const monthCells = [];
+      const dayCells = [];
+      let currentMonth = "";
+      let monthWidth = 0;
+
+      for (let i = 0; i < count; i++) {
+        const date = addDays(start, i * unitDays);
+        const monthLabel = `${date.getFullYear()}年 ${date.getMonth() + 1}月`;
+        if (monthLabel !== currentMonth) {
+          if (currentMonth) monthCells.push(`<div class="month-cell" style="width:${monthWidth}px;flex-basis:${monthWidth}px">${currentMonth}</div>`);
+          currentMonth = monthLabel;
+          monthWidth = 0;
+        }
+        monthWidth += dayW;
+        const isToday = formatDate(date) === formatDate(today);
+        const label = unitDays === 7 ? `${date.getMonth() + 1}/${date.getDate()}` : date.getDate();
+        dayCells.push(`<div class="day-cell ${isToday ? "today" : ""}">${label}</div>`);
+      }
+
+      if (currentMonth) monthCells.push(`<div class="month-cell" style="width:${monthWidth}px;flex-basis:${monthWidth}px">${currentMonth}</div>`);
+      return {
+        monthRow: `<div class="month-row">${monthCells.join("")}</div>`,
+        dayRow: `<div class="day-row">${dayCells.join("")}</div>`
+      };
+    }
+
+    function timelineRowHtml(task, index, rangeStart, unitDays, dayW, count) {
+      const startOffset = daysBetween(formatDate(rangeStart), task.start) / unitDays * dayW;
+      const duration = Math.max(1, daysBetween(task.start, task.end) + 1);
+      const width = Math.max(task.type === "milestone" ? 14 : 12, duration / unitDays * dayW);
+      const statusClass = task.status === "done" ? "done" : task.status === "blocked" ? "blocked" : "";
+      const grid = Array.from({ length: count }, (_, i) => {
+        const date = addDays(rangeStart, i * unitDays);
+        return `<div class="grid-col ${formatDate(date) === formatDate(today) ? "today" : ""}" style="left:${i * dayW}px"></div>`;
+      }).join("");
+
+      return `<div class="timeline-row" data-row="${task.id}" style="top:${index * 0}px">
+        ${grid}
+        <div class="task-bar ${task.type} ${statusClass}" data-drag="${task.id}" style="left:${startOffset}px;width:${width}px">
+          ${task.type === "task" ? `<span class="resize left" data-resize="left" data-id="${task.id}"></span>` : ""}
+          ${task.type !== "milestone" ? `<div class="progress" style="width:${task.progress}%"></div>` : ""}
+          ${task.type === "task" ? `<span class="resize right" data-resize="right" data-id="${task.id}"></span>` : ""}
+          <span class="bar-label">${escapeHtml(task.name)}</span>
+        </div>
+      </div>`;
+    }
+
+    function renderBoard() {
+      const visible = visibleTasks().map(row => row.task).filter(task => task.type !== "group");
+      els.viewRoot.innerHTML = `<div class="board">
+        ${Object.entries(statusMeta).filter(([status]) => status !== "blocked").map(([status, meta]) => {
+          const laneTasks = visible.filter(task => task.status === status);
+          return `<section class="lane">
+            <h2><span>${meta.label}</span><span class="pill">${laneTasks.length}</span></h2>
+            <div class="lane-body">
+              ${laneTasks.map(boardCardHtml).join("") || `<div class="empty">タスクなし</div>`}
+            </div>
+          </section>`;
+        }).join("")}
+      </div>`;
+    }
+
+    function boardCardHtml(task) {
+      return `<article class="task-card" data-open="${task.id}">
+        <strong>${escapeHtml(task.name)}</strong>
+        <div class="card-meta">
+          <span class="pill ${task.priority}">${priorityMeta[task.priority]}</span>
+          <span>${escapeHtml(task.owner || "未設定")}</span>
+          <span>${compactDate(task.start)} - ${compactDate(task.end)}</span>
+          <span>${task.progress}%</span>
+        </div>
+      </article>`;
+    }
+
+    function renderList() {
+      const rows = visibleTasks();
+      els.viewRoot.innerHTML = `<div class="list-view">
+        <table class="list-table">
+          <thead>
+            <tr>
+              <th>タスク名</th><th>種別</th><th>担当者</th><th>状態</th><th>優先度</th><th>開始</th><th>終了</th><th>進捗</th><th>メモ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(({ task, level }) => `<tr data-open="${task.id}">
+              <td style="padding-left:${12 + level * 18}px">${escapeHtml(task.name)}</td>
+              <td>${task.type === "group" ? "グループ" : task.type === "milestone" ? "マイルストーン" : "タスク"}</td>
+              <td>${escapeHtml(task.owner || "")}</td>
+              <td>${statusMeta[task.status].label}</td>
+              <td><span class="pill ${task.priority}">${priorityMeta[task.priority]}</span></td>
+              <td>${task.start}</td>
+              <td>${task.end}</td>
+              <td>${task.progress}%</td>
+              <td>${escapeHtml(task.notes || "")}</td>
+            </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>`;
+    }
+
+    function bindGanttEvents(rangeStart, unitDays) {
+      document.querySelectorAll("[data-field]").forEach(input => {
+        input.addEventListener("click", event => event.stopPropagation());
+        input.addEventListener("change", event => {
+          const task = tasks.find(item => item.id === event.target.dataset.id);
+          if (!task) return;
+          const field = event.target.dataset.field;
+          task[field] = field === "progress" ? clamp(event.target.value, 0, 100) : event.target.value;
+          normalizeTask(task);
+          syncParentDates(task.parent);
+          render();
+        });
+      });
+
+      document.querySelectorAll("[data-toggle]").forEach(button => {
+        button.addEventListener("click", event => {
+          event.stopPropagation();
+          const task = tasks.find(item => item.id === button.dataset.toggle);
+          if (task) task.expanded = task.expanded === false;
+          render();
+        });
+      });
+
+      document.querySelectorAll("[data-child]").forEach(button => {
+        button.addEventListener("click", event => {
+          event.stopPropagation();
+          addTask({ parent: button.dataset.child });
+        });
+      });
+
+      document.querySelectorAll("[data-drag]").forEach(bar => {
+        bar.addEventListener("mousedown", event => startDrag(event, bar.dataset.drag, rangeStart, unitDays));
+      });
+
+      document.querySelectorAll("[data-resize]").forEach(handle => {
+        handle.addEventListener("mousedown", event => startResize(event, handle.dataset.id, handle.dataset.resize, unitDays));
+      });
+    }
+
+    function startDrag(event, id, rangeStart, unitDays) {
+      if (event.target.dataset.resize) return;
+      event.preventDefault();
+      event.stopPropagation();
+      selectedTaskId = id;
+      const task = tasks.find(item => item.id === id);
+      const moving = [task, ...descendantsOf(id)];
+      const startX = event.clientX;
+      const originals = moving.map(item => ({ id: item.id, start: parseDate(item.start), end: parseDate(item.end) }));
+      const dayW = els.scaleSelect.value === "week" ? 58 : 36;
+
+      document.onmousemove = moveEvent => {
+        const diffDays = Math.round((moveEvent.clientX - startX) / dayW) * unitDays;
+        moving.forEach(item => {
+          const original = originals.find(base => base.id === item.id);
+          item.start = formatDate(addDays(original.start, diffDays));
+          item.end = item.type === "milestone" ? item.start : formatDate(addDays(original.end, diffDays));
+        });
+        if (task.parent) syncParentDates(task.parent);
+        renderGantt();
+      };
+
+      document.onmouseup = () => {
+        document.onmousemove = null;
+        document.onmouseup = null;
+        saveTasks();
+        render();
+      };
+    }
+
+    function startResize(event, id, direction, unitDays) {
+      event.preventDefault();
+      event.stopPropagation();
+      const task = tasks.find(item => item.id === id);
+      if (!task) return;
+      const startX = event.clientX;
+      const originalStart = parseDate(task.start);
+      const originalEnd = parseDate(task.end);
+      const dayW = els.scaleSelect.value === "week" ? 58 : 36;
+
+      document.onmousemove = moveEvent => {
+        const diffDays = Math.round((moveEvent.clientX - startX) / dayW) * unitDays;
+        if (direction === "left") {
+          const next = addDays(originalStart, diffDays);
+          if (next <= parseDate(task.end)) task.start = formatDate(next);
+        } else {
+          const next = addDays(originalEnd, diffDays);
+          if (next >= parseDate(task.start)) task.end = formatDate(next);
+        }
+        syncParentDates(task.parent);
+        renderGantt();
+      };
+
+      document.onmouseup = () => {
+        document.onmousemove = null;
+        document.onmouseup = null;
+        saveTasks();
+        render();
+      };
+    }
+
+    function earliestStart() {
+      return tasks.map(task => task.start).sort()[0] || formatDate(today);
+    }
+
+    function addTask(overrides = {}) {
+      const baseDate = formatDate(today);
+      const id = `task-${Date.now()}`;
+      const parent = overrides.parent || "";
+      const parentTask = tasks.find(task => task.id === parent);
+      if (parentTask) {
+        parentTask.type = "group";
+        parentTask.expanded = true;
+      }
+      tasks.push({
+        id,
+        name: overrides.type === "milestone" ? "新しいマイルストーン" : "新しいタスク",
+        owner: "",
+        status: "todo",
+        priority: "medium",
+        start: baseDate,
+        end: overrides.type === "milestone" ? baseDate : formatDate(addDays(today, 4)),
+        progress: 0,
+        parent,
+        type: overrides.type || "task",
+        expanded: true,
+        notes: ""
+      });
+      syncParentDates(parent);
+      selectedTaskId = id;
+      render();
+      openDrawer(id);
+    }
+
+    function openDrawer(id) {
+      const task = tasks.find(item => item.id === id);
+      if (!task) return;
+      editingTaskId = id;
+      selectedTaskId = id;
+      document.getElementById("drawerTitle").textContent = "タスク編集";
+      document.getElementById("formName").value = task.name;
+      document.getElementById("formType").value = task.type;
+      document.getElementById("formStatus").value = task.status;
+      document.getElementById("formPriority").value = task.priority;
+      document.getElementById("formOwner").value = task.owner || "";
+      document.getElementById("formProgress").value = task.progress;
+      document.getElementById("formStart").value = task.start;
+      document.getElementById("formEnd").value = task.end;
+      document.getElementById("formNotes").value = task.notes || "";
+      document.getElementById("formParent").innerHTML = `<option value="">なし</option>` + tasks
+        .filter(item => item.id !== id && !descendantsOf(id).some(child => child.id === item.id))
+        .map(item => `<option value="${item.id}" ${task.parent === item.id ? "selected" : ""}>${escapeHtml(item.name)}</option>`)
+        .join("");
+      els.drawer.classList.add("open");
+    }
+
+    function closeDrawer() {
+      els.drawer.classList.remove("open");
+      editingTaskId = "";
+    }
+
+    function deleteTask(id) {
+      const ids = new Set([id, ...descendantsOf(id).map(task => task.id)]);
+      const parent = tasks.find(task => task.id === id)?.parent || "";
+      tasks = tasks.filter(task => !ids.has(task.id));
+      syncParentDates(parent);
+      selectedTaskId = "";
+      closeDrawer();
+      render();
+    }
+
+    function exportCsv() {
+      const header = ["タスク名", "種別", "担当者", "状態", "優先度", "開始日", "終了日", "進捗", "親タスク", "メモ"];
+      const rows = tasks.map(task => [
+        task.name,
+        task.type,
+        task.owner,
+        statusMeta[task.status].label,
+        priorityMeta[task.priority],
+        task.start,
+        task.end,
+        `${task.progress}%`,
+        tasks.find(item => item.id === task.parent)?.name || "",
+        task.notes || ""
+      ]);
+      const csv = [header, ...rows].map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(",")).join("\n");
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `project-tasks-${formatDate(today)}.csv`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        activeView = tab.dataset.view;
+        render();
+      });
+    });
+
+    [els.searchInput, els.statusFilter, els.ownerFilter, els.scaleSelect, els.startInput].forEach(input => {
+      input.addEventListener("input", render);
+      input.addEventListener("change", render);
+    });
+
+    document.getElementById("addTaskBtn").addEventListener("click", () => addTask());
+    document.getElementById("addMilestoneBtn").addEventListener("click", () => addTask({ type: "milestone" }));
+    document.getElementById("exportBtn").addEventListener("click", exportCsv);
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      if (confirm("初期データに戻しますか？現在のローカルデータは上書きされます。")) {
+        tasks = structuredClone(seedTasks);
+        selectedTaskId = "";
+        els.startInput.value = earliestStart();
+        render();
+      }
+    });
+
+    document.getElementById("closeDrawerBtn").addEventListener("click", closeDrawer);
+    document.getElementById("cancelBtn").addEventListener("click", closeDrawer);
+    els.drawer.addEventListener("click", event => {
+      if (event.target === els.drawer) closeDrawer();
+    });
+
+    els.viewRoot.addEventListener("click", event => {
+      const opener = event.target.closest("[data-open]");
+      if (opener) openDrawer(opener.dataset.open);
+    });
+
+    els.taskForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const task = tasks.find(item => item.id === editingTaskId);
+      if (!task) return;
+      const oldParent = task.parent;
+      task.name = document.getElementById("formName").value.trim() || "無題のタスク";
+      task.type = document.getElementById("formType").value;
+      task.parent = document.getElementById("formParent").value;
+      task.status = document.getElementById("formStatus").value;
+      task.priority = document.getElementById("formPriority").value;
+      task.owner = document.getElementById("formOwner").value.trim();
+      task.progress = clamp(document.getElementById("formProgress").value, 0, 100);
+      task.start = document.getElementById("formStart").value;
+      task.end = document.getElementById("formEnd").value;
+      task.notes = document.getElementById("formNotes").value.trim();
+      normalizeTask(task);
+      syncParentDates(oldParent);
+      syncParentDates(task.parent);
+      closeDrawer();
+      render();
+    });
+
+    document.getElementById("deleteTaskBtn").addEventListener("click", () => {
+      if (editingTaskId && confirm("このタスクと子タスクを削除しますか？")) deleteTask(editingTaskId);
+    });
+
+    els.startInput.value = earliestStart();
+    render();
+  </script>
+</body>
+</html>
